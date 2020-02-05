@@ -7,18 +7,19 @@ import android.view.MenuItem
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
 import com.jakewharton.rx.replayingShare
-import io.reactivex.BackpressureStrategy
-import io.reactivex.Observable
-import io.reactivex.Observer
+import io.reactivex.*
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.functions.BiFunction
 import io.reactivex.functions.Consumer
 import io.reactivex.rxkotlin.Observables
+import io.reactivex.rxkotlin.subscribeBy
+import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 import kotlinx.android.synthetic.main.activity_main.*
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
+
 
 class MainActivity : AppCompatActivity() {
 
@@ -39,8 +40,7 @@ class MainActivity : AppCompatActivity() {
 
 
         //hot & cold & backpressure
-
-                backPressure()
+//        backPressure()
 //        coldObservables()
 //        coldObservables2()
 //        hotObservables()
@@ -51,13 +51,271 @@ class MainActivity : AppCompatActivity() {
 //        replayingShare()
 
 
+//        flatMapExample()
+//        flatMapExampleWithoutList()
+//        concatMapExample()
+//        concatMapEagerExample()
+//        switchMapExample()
+
+
+        combineLatestExample()
+//        mergeExample()
+//        mergeCompletableExample()
+//        concatExample()
+//        zipExample()
+
+
+//        groupByExample()
+
     }
+
+    private fun flatMapExample() {
+
+        val items = listOf("a", "b", "c", "d", "e", "f")
+
+
+
+        val d = Observable.fromIterable(items)
+            .flatMap {
+                    item: String ->
+
+                val delay = Random.nextLong(10)
+
+                Observable.just("$item - x")
+                    .delay(delay, TimeUnit.SECONDS, Schedulers.computation())
+            }
+            .toList()
+            .doOnSuccess { Log.d("Main", "Rx - $it") }
+            .subscribe()
+
+    }
+
+    private fun flatMapExampleWithoutList() {
+
+        val items = listOf("a", "b", "c", "d", "e", "f")
+
+        val d = Observable.fromIterable(items)
+            .flatMap { item ->
+                val delay = Random.nextLong(10)
+                Observable.just("$item - x - $delay")
+                    .delay(delay, TimeUnit.SECONDS, Schedulers.computation())
+            }
+            .doOnNext { Log.d("Main", "Rx - $it") }
+            .subscribe()
+
+    }
+
+    private fun concatMapExample() {
+
+        val items = listOf("a", "b", "c", "d", "e", "f")
+        Log.d("Main", "Rx - Start")
+        val d = Observable.fromIterable(items)
+            .concatMap { item ->
+                val delay = Random.nextLong(10)
+                Observable.just("$item - $delay")
+                    .delay(delay, TimeUnit.SECONDS, Schedulers.computation())
+            }
+            .toList()
+            .doOnSuccess { Log.d("Main", "Rx - $it") }
+            .subscribe()
+
+    }
+
+    private fun concatMapEagerExample() {
+
+        val items = listOf("a", "b", "c", "d", "e", "f")
+        Log.d("Main", "Rx - Start")
+        val d = Observable.fromIterable(items)
+            .concatMapEager { item ->
+                val delay = Random.nextLong(10)
+                Observable.just("$item - $delay")
+                    .delay(delay, TimeUnit.SECONDS, Schedulers.computation())
+            }
+            .toList()
+            .doOnSuccess { Log.d("Main", "Rx - $it") }
+            .subscribe()
+
+    }
+
+    private fun switchMapExample() {
+
+        val items = listOf("a", "b", "c", "d", "e", "f")
+        Log.d("Main", "Rx - Start")
+        val d = Observable.fromIterable(items)
+            .switchMap { item ->
+                val delay = Random.nextLong(5)
+                Observable.just("$item - $delay")
+                    .delay(delay, TimeUnit.SECONDS, Schedulers.computation())
+            }
+            .toList()
+            .doOnSuccess { Log.d("Main", "Rx - $it") }
+            .subscribe()
+
+    }
+
+
+    private fun combineLatestExample() {
+
+
+        val observable1 = Observable.interval(2, 3, TimeUnit.SECONDS)
+            .doOnNext { Log.d("Main", "Rx - o1 emit $it") }
+
+        val observable2 = Observable.interval(2, 4, TimeUnit.SECONDS)
+            .doOnNext { Log.d("Main", "Rx - o2 emit $it") }
+
+        val d = Observable.combineLatest(
+            observable1,
+            observable2,
+            BiFunction<Long, Long, String> { count1, count2 ->
+                "Refreshed observable1 : $count1 , Refreshed observable2 : $count2"
+            }
+
+        ).subscribe { Log.d("Main", "Rx - $it") }
+
+        Thread.sleep(10000)
+
+        d.dispose()
+    }
+
+    private fun mergeExample() {
+        val observable1 = Observable.interval(2, 3, TimeUnit.SECONDS)
+            .doOnNext { Log.d("Main", "Rx - o1 emit $it") }
+        val observable2 = Observable.interval(2, 4, TimeUnit.SECONDS)
+            .doOnNext { Log.d("Main", "Rx - o2 emit $it") }
+
+        val d = Observable.merge(
+            observable1, observable2
+        ).subscribe { Log.d("Main", "Rx - $it") }
+        Thread.sleep(10000)
+
+        d.dispose()
+    }
+
+    private fun mergeCompletableExample() {
+
+        val o1 = Observable.intervalRange(1, 4, 1, 1, TimeUnit.SECONDS)
+            .doOnNext { Log.d("Main", "Rx - o1 emit $it") }
+        val c4 = Completable.fromObservable(o1).doOnComplete { Log.d("Main", "Rx - c4 complete") }
+
+        val c1 = Completable.complete().doOnComplete { Log.d("Main", "Rx - c1 complete") }
+
+        val c2 = Completable.complete().doOnComplete { Log.d("Main", "Rx - c2 complete") }
+
+        val c3 = Completable.complete().doOnComplete { Log.d("Main", "Rx - c3 complete") }
+
+
+        val d1 = Completable.merge(listOf(c1, c2, c3, c4))
+            .subscribe {
+                Log.d("Main", "Rx - merge complete")
+            }
+        Thread.sleep(10000)
+
+
+        d1.dispose()
+
+    }
+
+    private fun concatExample() {
+        val observable1 = Observable.intervalRange(1, 3, 0, 1, TimeUnit.SECONDS)
+            .doOnNext { Log.d("Main", "Rx - o1 emit $it") }
+            .doOnComplete { Log.d("Main", "Rx - o1 complete") }
+
+        val observable2 = Observable.intervalRange(1, 3, 3, 1, TimeUnit.SECONDS)
+            .doOnNext { Log.d("Main", "Rx - o2 emit $it") }
+            .doOnComplete { Log.d("Main", "Rx - o2 complete") }
+
+        val d = Observable.concat(
+            observable1, observable2
+        ).subscribe { Log.d("Main", "Rx - $it") }
+        Thread.sleep(10000)
+
+        d.dispose()
+    }
+
+
+    private fun zipExample() {
+        val observable1 = Observable.intervalRange(1, 5, 1, 1, TimeUnit.SECONDS)
+            .doOnNext { Log.d("Main", "Rx - o1 emit $it") }
+            .doOnComplete { Log.d("Main", "Rx - o1 complete") }
+            .doOnDispose { Log.d("Main", "Rx - o1 dispose") }
+
+        val observable2 = Observable.intervalRange(10, 8, 2, 2, TimeUnit.SECONDS)
+            .doOnNext { Log.d("Main", "Rx - o2 emit $it") }
+            .doOnComplete { Log.d("Main", "Rx - o2 complete") }
+            .doOnDispose { Log.d("Main", "Rx - o2 dispose") }
+
+        val d = Observable.zip(
+            observable1, observable2,
+            BiFunction<Long, Long, Long> { o1, o2 ->
+
+                Log.d("Main", "Rx - o1 - $o1 and o2 - $o2")
+                o1 + o2
+            }
+        ).subscribe { Log.d("Main", "Rx - $it") }
+        Thread.sleep(60000)
+
+        d.dispose()
+    }
+
+
+    data class DateModel(val date: Int, val value: String)
+
+
+    private fun groupByExample() {
+
+        val dateList = listOf(
+            DateModel(18, "1"),
+            DateModel(19, "2"),
+            DateModel(19, "3"),
+            DateModel(18, "1"),
+            DateModel(19, "2"),
+            DateModel(19, "3")
+        )
+        val d =
+            Observable.fromIterable(dateList)
+                .doOnNext { Log.d("Main", "Rx - after fromIterable : $it") }
+                .groupBy { it.date }.doOnNext {
+                    Log.d("Main", "Rx - after groupBy : ${it.key}")
+                }
+                .flatMapSingle {
+                    it.toList()
+                }.doOnNext {
+                    Log.d("Main", "Rx - after flatMapSingle : $it")
+                }
+                .subscribe { Log.d("Main", "Rx - dateSize ${it.size}") }
+
+
+    }
+
+
+    //
 
     private fun createRxStream() {
 
         val observable = getObservable()
         val observer = getObserver()
         observable.subscribe(observer)
+
+        observable.subscribe(
+            {
+
+            },
+            {
+
+            },
+            {
+            },
+            {
+
+            }
+        )
+
+
+        val observable1 = Observable.just(1, 2, 3)
+        observable1.subscribeBy(
+            onNext = { Log.d("Main", "kotlin rx - $it") },
+            onComplete = { Log.d("Main", "kotlin rx - complete") }
+        )
 
     }
 
@@ -403,13 +661,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun backPressure() {
+
+
+        val flowable = Flowable.just(1, 2, 3, 4)
+
         val observable = PublishSubject.create<Int>()
 
 
         val s = observable.doOnNext {
             Log.d("Main", "t - doOnNext ${it}")
         }
-            .toFlowable(BackpressureStrategy.LATEST)
+            .toFlowable(BackpressureStrategy.MISSING)
             .observeOn(AndroidSchedulers.mainThread()) // this is important
             .subscribe(
                 {
