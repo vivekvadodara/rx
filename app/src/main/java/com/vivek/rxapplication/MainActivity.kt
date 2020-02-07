@@ -49,6 +49,7 @@ class MainActivity : AppCompatActivity() {
 //        hotPublish()
 //        replayRefCount()
 //        replayingShare()
+        replayingShare_observer()
 
 
 //        flatMapExample()
@@ -58,14 +59,14 @@ class MainActivity : AppCompatActivity() {
 //        switchMapExample()
 
 
-        combineLatestExample()
+//        combineLatestExample()
 //        mergeExample()
 //        mergeCompletableExample()
 //        concatExample()
 //        zipExample()
 
 
-//        groupByExample()
+        groupByExample()
 
     }
 
@@ -157,10 +158,10 @@ class MainActivity : AppCompatActivity() {
     private fun combineLatestExample() {
 
 
-        val observable1 = Observable.interval(2, 3, TimeUnit.SECONDS)
+        val observable1 = Observable.intervalRange(2, 5, 2, 3, TimeUnit.SECONDS)
             .doOnNext { Log.d("Main", "Rx - o1 emit $it") }
 
-        val observable2 = Observable.interval(2, 4, TimeUnit.SECONDS)
+        val observable2 = Observable.intervalRange(2, 4, 2, 4, TimeUnit.SECONDS)
             .doOnNext { Log.d("Main", "Rx - o2 emit $it") }
 
         val d = Observable.combineLatest(
@@ -185,7 +186,13 @@ class MainActivity : AppCompatActivity() {
 
         val d = Observable.merge(
             observable1, observable2
-        ).subscribe { Log.d("Main", "Rx - $it") }
+        )
+
+            .subscribe (
+                { Log.d("Main", "Rx - $it") },
+                {
+
+                })
         Thread.sleep(10000)
 
         d.dispose()
@@ -194,7 +201,6 @@ class MainActivity : AppCompatActivity() {
     private fun mergeCompletableExample() {
 
         val o1 = Observable.intervalRange(1, 4, 1, 1, TimeUnit.SECONDS)
-            .doOnNext { Log.d("Main", "Rx - o1 emit $it") }
         val c4 = Completable.fromObservable(o1).doOnComplete { Log.d("Main", "Rx - c4 complete") }
 
         val c1 = Completable.complete().doOnComplete { Log.d("Main", "Rx - c1 complete") }
@@ -437,6 +443,75 @@ class MainActivity : AppCompatActivity() {
 
     }
 
+    private fun replayingShare_observer() {
+
+        val observable: Observable<Long> =
+            Observable.interval(1000, TimeUnit.MILLISECONDS).doOnNext {
+                Log.d("Main", "t - doOnNext ${it}")
+            }
+
+
+        val con = observable.replayingShare()
+
+        Thread.sleep(5000)
+
+        val sub1 = object : Observer<Long> {
+            override fun onComplete() {
+                Log.d("Main", "t - sub1 - onComplete")
+            }
+
+            override fun onSubscribe(d: Disposable) {
+                Log.d("Main", "t - sub1 - onSubscribe")
+            }
+
+            override fun onNext(t: Long) {
+                Log.d("Main", "t - sub1 - onNext ${t}")
+            }
+
+            override fun onError(e: Throwable) {
+                Log.d("Main", "t - sub1 - onError ${e}")
+            }
+
+        }
+
+        con.subscribe(sub1)
+
+        val s = Observable.just(1L).subscribe(sub1)
+
+        Thread.sleep(5000)
+
+
+        val sub2 = object : Observer<Long> {
+            override fun onComplete() {
+                Log.d("Main", "t - sub2 - onComplete")
+            }
+
+            override fun onSubscribe(d: Disposable) {
+                Log.d("Main", "t - sub2 - onSubscribe")
+            }
+
+            override fun onNext(t: Long) {
+                Log.d("Main", "t - sub2 - onNext ${t}")
+            }
+
+            override fun onError(e: Throwable) {
+                Log.d("Main", "t - sub2 - onError ${e}")
+            }
+
+        }
+
+        Thread.sleep(2000)
+        con.subscribe(sub2)
+
+
+        Thread.sleep(20000)
+
+
+
+        while (true) {
+        }
+    }
+
     private fun replayingShare() {
 
         val observable: Observable<Long> =
@@ -447,6 +522,7 @@ class MainActivity : AppCompatActivity() {
 
         val con = observable.replayingShare()
 
+        Thread.sleep(5000)
 
         val sub1 = Consumer<Long>(
             {
@@ -454,33 +530,25 @@ class MainActivity : AppCompatActivity() {
             }
         )
 
-        val sub2 = Consumer<Long>(
-            {
-                Log.d("Main", "t - sub2 - onNext ${it}")
-            }
-        )
         val d1 = con.subscribe(sub1)
-        val d2 = con.subscribe(sub2)
 
-        Thread.sleep(5000)
-
-        d2.dispose()
 
         Thread.sleep(5000)
 
         d1.dispose()
 
-        Thread.sleep(5000)
-
         val sub3 = Consumer<Long>(
             {
                 Log.d("Main", "t - sub3 - onNext ${it}")
             })
+
+        Thread.sleep(2000)
         val d3 = con.subscribe(sub3)
 
-        Thread.sleep(5000)
+        Thread.sleep(20000)
 
         d3.dispose()
+
 
         while (true) {
         }
@@ -548,8 +616,10 @@ class MainActivity : AppCompatActivity() {
             }
 
         }
-
+//
         val con = observable.publish()
+
+        //sub1
         con.connect()
 
 
@@ -593,7 +663,7 @@ class MainActivity : AppCompatActivity() {
             }
 
         }
-        val con = observable.replay()
+        val con = observable.replay(1)
         con.connect()
 
 
@@ -609,14 +679,14 @@ class MainActivity : AppCompatActivity() {
             }
         )
         val d1 = con.subscribe(sub1)
+
+        Thread.sleep(5000)
+
         val d2 = con.subscribe(sub2)
 
-        Thread.sleep(10000)
 
+        Thread.sleep(5000)
         d2.dispose()
-
-        Thread.sleep(10000)
-
         d1.dispose()
 
         while (true) {
