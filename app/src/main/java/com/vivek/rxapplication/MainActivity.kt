@@ -6,8 +6,9 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
-import com.google.android.material.snackbar.Snackbar
+import androidx.fragment.app.FragmentActivity
 import com.jakewharton.rx.replayingShare
+import com.jakewharton.rxrelay3.BehaviorRelay
 import io.reactivex.*
 import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
@@ -17,7 +18,8 @@ import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
-import kotlinx.android.synthetic.main.activity_main.*
+import org.reactivestreams.Subscriber
+import org.reactivestreams.Subscription
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
@@ -70,10 +72,9 @@ class MainActivity : AppCompatActivity() {
         val items = listOf("a", "b", "c", "d", "e", "f")
         val d = Observable.fromIterable(items)
                 .flatMap { item: String ->
-
                     val delay = Random.nextLong(10)
 
-                    Observable.just("$item - x")
+                    Observable.just("$item - $delay")
                             .delay(delay, TimeUnit.SECONDS, Schedulers.computation())
                 }
                 .toList()
@@ -130,18 +131,66 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun switchMapExample(v: View) {
-
         val items = listOf("a", "b", "c", "d", "e", "f")
         Log.d("Main", "Rx - Start")
-        val d = Observable.fromIterable(items)
+        val d = getSwitchObservableSource()
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
                 .switchMap { item ->
-                    val delay = Random.nextLong(5)
+
+                    val delay = Random.nextLong(1, 3)
+                    Log.d("Main", "value - $item - $delay")
                     Observable.just("$item - $delay")
                             .delay(delay, TimeUnit.SECONDS, Schedulers.computation())
                 }
                 .toList()
                 .doOnSuccess { Log.d("Main", "Rx - $it") }
                 .subscribe()
+
+
+    }
+
+    private fun getSwitchObservableSource(): Observable<String> {
+        return Observable.create { emitter ->
+            emitter.onNext("a")
+            Thread.sleep(1000)
+            emitter.onNext("b")
+            Thread.sleep(3000)
+            emitter.onNext("c")
+
+            Thread.sleep(2000)
+
+            emitter.onComplete()
+        }
+    }
+
+
+    fun switchMapExample2(v: View) {
+
+        val items = listOf("a", "b", "c", "d", "e", "f")
+        Log.d("Main", "Rx - Start")
+        val sourceSubject = BehaviorRelay.create<String>()
+        sourceSubject.accept("a")
+        sourceSubject.accept("b")
+        sourceSubject.accept("c")
+        sourceSubject.accept("d")
+        sourceSubject.accept("e")
+        sourceSubject.accept("f")
+
+        val d = sourceSubject
+                .flatMap { item ->
+                    val delay = Random.nextLong(5)
+//                    BehaviorSubject.createDefault("$item - $delay").delay(delay, TimeUnit.SECONDS)
+                    BehaviorRelay.createDefault("$item - $delay").delay(delay, TimeUnit.SECONDS)
+                }
+                .subscribe(
+                        {
+                            Log.d("Main", "Rx - $it")
+                        },
+                        {
+
+                        }
+                )
 
     }
 
@@ -392,8 +441,14 @@ class MainActivity : AppCompatActivity() {
                 }
         )
 
-        coldObservable.subscribe(sub1)
-        coldObservable.subscribe(sub2)
+        coldObservable
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(sub1)
+        coldObservable
+                .subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(sub2)
         //not calling dispose
 
         while (true) {
@@ -722,31 +777,58 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun backPressure(v: View) {
-
-
         val flowable = Flowable.just(1, 2, 3, 4)
+        val observable: PublishSubject<Int> = PublishSubject.create<Int>()
+        val s = observable
+//                .observeOn(AndroidSchedulers.mainThread())
+//                .subscribeOn(Schedulers.io())
+//                .doOnNext {
+//                    Log.d("Main", "t - doOnNext ${it}")
+//                }.doOnComplete { Log.d("Main", "t - onComplete") }
+//                .doOnError {Log.d("Main", "t - onError")  }
+//                .doOnDispose { Log.d("Main", "t - onDispose")  }
+//                .toFlowable(BackpressureStrategy.MISSING)
+                .toFlowable(BackpressureStrategy.BUFFER)
+//                .toFlowable(BackpressureStrategy.DROP)
+//                .toFlowable(BackpressureStrategy.LATEST)
+//                .toFlowable(BackpressureStrategy.ERROR)
+//                .subscribeOn(Schedulers.io())
+//                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(getFlowableObserver())
 
-        val observable = PublishSubject.create<Int>()
 
-
-        val s = observable.doOnNext {
-            Log.d("Main", "t - doOnNext ${it}")
-        }
-                .toFlowable(BackpressureStrategy.MISSING)
-                .observeOn(AndroidSchedulers.mainThread()) // this is important
-                .subscribe(
-                        {
-                            Log.d("Main", "t - onNext ${it}")
-
-                        },
-                        { t ->
-                            Log.d("Main", "t - onError ${t.message}")
-                        }
-                )
-
-
-        for (i in 0..1000) {
+        for (i in 0..300) {
             observable.onNext(i)
+        }
+    }
+
+    private fun getFlowableObserver(): Subscriber<Int> {
+//             vvvvvvvvvv ---------------------------------------------
+        return object : Subscriber<Int> {
+            override fun onSubscribe(d: Subscription) {
+                Log.d("FragmentActivity.TAG", "onSubscribe")
+                // request is required to start items flowing!
+                // vvvvvvvvvvvvvvvvvvvvvvvvv --------------------------------
+                d.request(Long.MAX_VALUE)
+            }
+
+            //          vvvvvv --------------------------------------------
+            override fun onNext(integer: Int) {
+                Log.d("FragmentActivity.TAG", "onSuccess: $integer")
+            }
+
+            override fun onError(e: Throwable) {
+                Log.e("FragmentActivity.TAG", "onError: " + e.message)
+            }
+
+            //          vvvvvvvvvv ----------------------------------------
+            fun onComplete(e: Throwable?) {
+                Log.e("FragmentActivity.TAG", "onComplete")
+            }
+
+            override fun onComplete() {
+                Log.e("FragmentActivity.TAG", "onComplete -2 ")
+            }
         }
     }
 
