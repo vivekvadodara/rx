@@ -12,15 +12,18 @@ import java.util.TimerTask;
 
 public class PollingImprovementActivity extends AppCompatActivity {
 
+    static Polling pollingObj = new Polling();
+    static Timer timer = new Timer();
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        polling();
+//        polling(); //TODO uncomment it for continuous flow
 
-        Tutorial android1 = new Tutorial("Hafiz 1", "........");
-        Tutorial android2 = new Tutorial("Hafiz 2", "........");
-        Tutorial android3 = new Tutorial("Hafiz 3", "........");
+        Tutorial android1 = new Tutorial("Tutorial 1", "........");
+        Tutorial android2 = new Tutorial("Tutorial 2", "........");
+        Tutorial android3 = new Tutorial("Tutorial 3", "........");
 
         Tutorial.publish(android1);
         Tutorial.publish(android2);
@@ -39,16 +42,28 @@ public class PollingImprovementActivity extends AppCompatActivity {
         Tutorial.addSubscribedUser(C);
         Tutorial.addSubscribedUser(D);
 
-        Tutorial android4 = new Tutorial("Hafiz 4", "........");
+        Tutorial android4 = new Tutorial("Tutorial 4", "........");
         Tutorial.publish(android4);
     }
 
     private static void polling() {
 
-        Polling polling = new Polling();
-        Timer timer = new Timer();
-        timer.schedule(polling, 0, 1000);
+        if (pollingObj == null) {
+            pollingObj = new Polling();
+        }
+        if (timer == null) {
+            timer = new Timer();
+        }
 
+        timer.schedule(pollingObj, 0, 5000);
+
+    }
+
+    private static void stopPolling() {
+        pollingObj.cancel();
+        timer.cancel();
+        timer = null;
+        pollingObj = null;
     }
 
 
@@ -56,7 +71,7 @@ public class PollingImprovementActivity extends AppCompatActivity {
 
         @Override
         public void run() {
-            Tutorial android4 = new Tutorial("Hafiz 4", "........");
+            Tutorial android4 = new Tutorial("Tutorial 5", "........");
             Tutorial.publish(android4);
         }
     }
@@ -126,5 +141,11 @@ public class PollingImprovementActivity extends AppCompatActivity {
             publishedTutorials.add(tutorial);
             sendEmail(subscribedUsers);
         }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        stopPolling();
     }
 }

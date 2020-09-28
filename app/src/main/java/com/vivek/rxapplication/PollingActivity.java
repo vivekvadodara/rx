@@ -17,13 +17,16 @@ public class PollingActivity extends AppCompatActivity {
     private static List<Tutorial> publishedTutorials = new ArrayList<>();
     private static int lastCountOfPublishedTutorials = 0;
 
+    private static Polling pollingObj = new Polling();
+    private static Timer timer = new Timer();
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Tutorial android1 = new Tutorial("Hafiz 1", "........");
-        Tutorial android2 = new Tutorial("Hafiz 2", "........");
-        Tutorial android3 = new Tutorial("Hafiz 3", "........");
+        Tutorial android1 = new Tutorial("Tutorial 1", "........");
+        Tutorial android2 = new Tutorial("Tutorial 2", "........");
+        Tutorial android3 = new Tutorial("Tutorial 3", "........");
 
         publishedTutorials.add(android1);
         publishedTutorials.add(android2);
@@ -44,7 +47,7 @@ public class PollingActivity extends AppCompatActivity {
         subscribedUsers.add(C);
         subscribedUsers.add(D);
 
-        Tutorial android4 = new Tutorial("Hafiz 4", "........");
+        Tutorial android4 = new Tutorial("Tutorial 4", "........");
         publishedTutorials.add(android4);
 
     }
@@ -122,11 +125,21 @@ public class PollingActivity extends AppCompatActivity {
 
 
     private static void polling() {
+        if (pollingObj == null) {
+            pollingObj = new Polling();
+        }
+        if (timer == null) {
+            timer = new Timer();
+        }
+        timer.schedule(pollingObj, 0, 1000);
+    }
 
-        Polling polling = new Polling();
-        Timer timer = new Timer();
-        timer.schedule(polling, 0, 1000);
+    private static void stopPolling() {
+        pollingObj.cancel();
+        timer.cancel();
 
+        timer = null;
+        pollingObj = null;
     }
 
 
@@ -141,6 +154,12 @@ public class PollingActivity extends AppCompatActivity {
             }
             Log.d("Polling", "Polling");
         }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        stopPolling();
     }
 
 }

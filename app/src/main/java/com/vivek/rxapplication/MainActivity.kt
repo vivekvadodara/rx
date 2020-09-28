@@ -8,7 +8,7 @@ import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.jakewharton.rx.replayingShare
-import com.jakewharton.rxrelay3.BehaviorRelay
+import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.*
 import io.reactivex.disposables.Disposable
 import io.reactivex.functions.BiFunction
