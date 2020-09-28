@@ -872,4 +872,8 @@ class MainActivity : AppCompatActivity() {
     fun rxApproach(view: View) {
         startActivity(Intent(this, RxApproachActivity::class.java))
     }
+
+    fun rxKotlinApproach(view: View) {
+        startActivity(Intent(this, RxApproachKotlinActivity::class.java))
+    }
 }

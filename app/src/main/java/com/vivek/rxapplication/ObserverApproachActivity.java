@@ -71,7 +71,7 @@ public class ObserverApproachActivity extends AppCompatActivity {
         }
 
         @Override
-        public void notifyMe() {
+        public void onNotify() {
             sendEmail(this);
         }
     }
@@ -106,7 +106,7 @@ public class ObserverApproachActivity extends AppCompatActivity {
         @Override
         public void notifyAllAboutChange() {
             for (Observer observer : observers) {
-                observer.notifyMe();
+                observer.onNotify();
             }
         }
 
@@ -130,6 +130,6 @@ public class ObserverApproachActivity extends AppCompatActivity {
     public interface Observer {
 
         // New tutorial published
-        void notifyMe();
+        void onNotify();
     }
 }

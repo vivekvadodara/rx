@@ -23,6 +23,7 @@
         <activity android:name=".PollingImprovementActivity"/>
         <activity android:name=".ObserverApproachActivity"/>
         <activity android:name=".RxApproachActivity"/>
+        <activity android:name=".RxApproachKotlinActivity"/>
     </application>
 
 </manifest>

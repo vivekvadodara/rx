@@ -2,12 +2,14 @@ package com.vivek.rxapplication;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
 
 import androidx.appcompat.app.AppCompatActivity;
 
 import io.reactivex.Observable;
 import io.reactivex.Observer;
 import io.reactivex.disposables.Disposable;
+import io.reactivex.functions.Consumer;
 
 public class RxApproachActivity extends AppCompatActivity {
 
@@ -15,11 +17,13 @@ public class RxApproachActivity extends AppCompatActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Tutorial android1 = new Tutorial("Hafiz 1", "........");
+        setContentView(R.layout.rx);
+
+        Tutorial android1 = new Tutorial("Tutorial 1", "........");
         android1.publish();
-        Tutorial android2 = new Tutorial("Hafiz 2", "........");
+        Tutorial android2 = new Tutorial("Tutorial 2", "........");
         android2.publish();
-        Tutorial android3 = new Tutorial("Hafiz 3", "........");
+        Tutorial android3 = new Tutorial("Tutorial 3", "........");
         android3.publish();
 
         // I have already three tutorials and later user subscribed for email
@@ -35,13 +39,23 @@ public class RxApproachActivity extends AppCompatActivity {
         Tutorial.REGISTER_FOR_SUBSCRIPTION.subscribe(C);
         Tutorial.REGISTER_FOR_SUBSCRIPTION.subscribe(D);
 
-        Tutorial android4 = new Tutorial("Hafiz 4", "........");
+        Tutorial android4 = new Tutorial("Tutorial 4", "........");
         android4.publish();
 
     }
 
     public static void sendEmail(User user) {
         Log.d("RxApproach", "Email send: " + user.getName());
+    }
+
+    public void newsPublish(View view) {
+        Observable.just(new Tutorial()).subscribe(new Consumer<Tutorial>() {
+            @Override
+            public void accept(Tutorial t) {
+                Log.d("RxApproach", "Received " + t);
+            }
+        });
+
     }
 
     public static class User implements Observer {
@@ -114,6 +128,4 @@ public class RxApproachActivity extends AppCompatActivity {
         }
 
     }
-
-
 }
