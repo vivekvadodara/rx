@@ -19,6 +19,10 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity android:name=".PollingActivity"/>
+        <activity android:name=".PollingImprovementActivity"/>
+        <activity android:name=".ObserverApproachActivity"/>
+        <activity android:name=".RxApproachActivity"/>
     </application>
 
 </manifest>

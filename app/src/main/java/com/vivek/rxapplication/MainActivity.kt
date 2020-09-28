@@ -1,5 +1,6 @@
 package com.vivek.rxapplication
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.Menu
@@ -9,7 +10,6 @@ import androidx.appcompat.app.AppCompatActivity
 import com.jakewharton.rx.replayingShare
 import com.jakewharton.rxrelay3.BehaviorRelay
 import io.reactivex.*
-import io.reactivex.android.schedulers.AndroidSchedulers
 import io.reactivex.disposables.Disposable
 import io.reactivex.functions.BiFunction
 import io.reactivex.functions.Consumer
@@ -28,19 +28,6 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.content_main)
-//        setSupportActionBar(toolbar)
-
-//        fab.setOnClickListener { view ->
-//            Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                .setAction("Action", null).show()
-//
-//
-//            createRxStream()
-//            //startRStream1()
-////            startRStream()
-//        }
-
-
         //hot & cold & backpressure
 //        backPressure()
 //        coldObservables()
@@ -70,15 +57,15 @@ class MainActivity : AppCompatActivity() {
 
         val items = listOf("a", "b", "c", "d", "e", "f")
         val d = Observable.fromIterable(items)
-                .flatMap { item: String ->
-                    val delay = Random.nextLong(10)
+            .flatMap { item: String ->
+                val delay = Random.nextLong(10)
 
-                    Observable.just("$item - $delay")
-                            .delay(delay, TimeUnit.SECONDS, Schedulers.computation())
-                }
-                .toList()
-                .doOnSuccess { Log.d("Main", "Rx - $it") }
-                .subscribeOn(Schedulers.io()).subscribe()
+                Observable.just("$item - $delay")
+                    .delay(delay, TimeUnit.SECONDS, Schedulers.computation())
+            }
+            .toList()
+            .doOnSuccess { Log.d("Main", "Rx - $it") }
+            .subscribeOn(Schedulers.io()).subscribe()
 
     }
 
@@ -87,13 +74,13 @@ class MainActivity : AppCompatActivity() {
         val items = listOf("a", "b", "c", "d", "e", "f")
 
         val d = Observable.fromIterable(items)
-                .flatMap { item ->
-                    val delay = Random.nextLong(10)
-                    Observable.just("$item - x - $delay")
-                            .delay(delay, TimeUnit.SECONDS, Schedulers.computation())
-                }
-                .doOnNext { Log.d("Main", "Rx - $it") }
-                .subscribeOn(Schedulers.io()).subscribe()
+            .flatMap { item ->
+                val delay = Random.nextLong(10)
+                Observable.just("$item - x - $delay")
+                    .delay(delay, TimeUnit.SECONDS, Schedulers.computation())
+            }
+            .doOnNext { Log.d("Main", "Rx - $it") }
+            .subscribeOn(Schedulers.io()).subscribe()
 
     }
 
@@ -102,14 +89,14 @@ class MainActivity : AppCompatActivity() {
         val items = listOf("a", "b", "c", "d", "e", "f")
         Log.d("Main", "Rx - Start")
         val d = Observable.fromIterable(items)
-                .concatMap { item ->
-                    val delay = Random.nextLong(10)
-                    Observable.just("$item - $delay")
-                            .delay(delay, TimeUnit.SECONDS, Schedulers.computation())
-                }
-                .toList()
-                .doOnSuccess { Log.d("Main", "Rx - $it") }
-                .subscribeOn(Schedulers.io()).subscribe()
+            .concatMap { item ->
+                val delay = Random.nextLong(10)
+                Observable.just("$item - $delay")
+                    .delay(delay, TimeUnit.SECONDS, Schedulers.computation())
+            }
+            .toList()
+            .doOnSuccess { Log.d("Main", "Rx - $it") }
+            .subscribeOn(Schedulers.io()).subscribe()
 
     }
 
@@ -118,14 +105,14 @@ class MainActivity : AppCompatActivity() {
         val items = listOf("a", "b", "c", "d", "e", "f")
         Log.d("Main", "Rx - Start")
         val d = Observable.fromIterable(items)
-                .concatMapEager { item ->
-                    val delay = Random.nextLong(10)
-                    Observable.just("$item - $delay")
-                            .delay(delay, TimeUnit.SECONDS, Schedulers.computation())
-                }
-                .toList()
-                .doOnSuccess { Log.d("Main", "Rx - $it") }
-                .subscribeOn(Schedulers.io()).subscribe()
+            .concatMapEager { item ->
+                val delay = Random.nextLong(10)
+                Observable.just("$item - $delay")
+                    .delay(delay, TimeUnit.SECONDS, Schedulers.computation())
+            }
+            .toList()
+            .doOnSuccess { Log.d("Main", "Rx - $it") }
+            .subscribeOn(Schedulers.io()).subscribe()
 
     }
 
@@ -133,18 +120,18 @@ class MainActivity : AppCompatActivity() {
         val items = listOf("a", "b", "c", "d", "e", "f")
         Log.d("Main", "Rx - Start")
         val d = getSwitchObservableSource()
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.io())
-                .switchMap { item ->
+            .subscribeOn(Schedulers.io())
+            .observeOn(Schedulers.io())
+            .switchMap { item ->
 
-                    val delay = Random.nextLong(1, 3)
-                    Log.d("Main", "value - $item - $delay")
-                    Observable.just("$item - $delay")
-                            .delay(delay, TimeUnit.SECONDS, Schedulers.computation())
-                }
-                .toList()
-                .doOnSuccess { Log.d("Main", "Rx - $it") }
-                .subscribeOn(Schedulers.io()).subscribe()
+                val delay = Random.nextLong(1, 3)
+                Log.d("Main", "value - $item - $delay")
+                Observable.just("$item - $delay")
+                    .delay(delay, TimeUnit.SECONDS, Schedulers.computation())
+            }
+            .toList()
+            .doOnSuccess { Log.d("Main", "Rx - $it") }
+            .subscribeOn(Schedulers.io()).subscribe()
 
 
     }
@@ -177,18 +164,18 @@ class MainActivity : AppCompatActivity() {
         sourceSubject.accept("f")
 
         val d = sourceSubject
-                .flatMap { item ->
-                    val delay = Random.nextLong(5)
-                    BehaviorRelay.createDefault("$item - $delay").delay(delay, TimeUnit.SECONDS)
-                }
-                .subscribe(
-                        {
-                            Log.d("Main", "Rx - $it")
-                        },
-                        {
+            .flatMap { item ->
+                val delay = Random.nextLong(5)
+                BehaviorRelay.createDefault("$item - $delay").delay(delay, TimeUnit.SECONDS)
+            }
+            .subscribe(
+                {
+                    Log.d("Main", "Rx - $it")
+                },
+                {
 
-                        }
-                )
+                }
+            )
 
     }
 
@@ -197,17 +184,17 @@ class MainActivity : AppCompatActivity() {
 
 
         val observable1 = Observable.intervalRange(2, 5, 2, 3, TimeUnit.SECONDS)
-                .doOnNext { Log.d("Main", "Rx - o1 emit $it") }
+            .doOnNext { Log.d("Main", "Rx - o1 emit $it") }
 
         val observable2 = Observable.intervalRange(2, 4, 2, 4, TimeUnit.SECONDS)
-                .doOnNext { Log.d("Main", "Rx - o2 emit $it") }
+            .doOnNext { Log.d("Main", "Rx - o2 emit $it") }
 
         val d = Observable.combineLatest(
-                observable1,
-                observable2,
-                BiFunction<Long, Long, String> { count1, count2 ->
-                    "Refreshed observable1 : $count1 , Refreshed observable2 : $count2"
-                }
+            observable1,
+            observable2,
+            BiFunction<Long, Long, String> { count1, count2 ->
+                "Refreshed observable1 : $count1 , Refreshed observable2 : $count2"
+            }
 
         ).subscribeOn(Schedulers.io()).subscribe { Log.d("Main", "Rx - $it") }
 
@@ -218,19 +205,19 @@ class MainActivity : AppCompatActivity() {
 
     fun mergeExample(v: View) {
         val observable1 = Observable.interval(2, 3, TimeUnit.SECONDS)
-                .doOnNext { Log.d("Main", "Rx - o1 emit $it") }
+            .doOnNext { Log.d("Main", "Rx - o1 emit $it") }
         val observable2 = Observable.interval(2, 4, TimeUnit.SECONDS)
-                .doOnNext { Log.d("Main", "Rx - o2 emit $it") }
+            .doOnNext { Log.d("Main", "Rx - o2 emit $it") }
 
         val d = Observable.merge(
-                observable1, observable2
+            observable1, observable2
         )
 
-                .subscribeOn(Schedulers.io()).subscribe(
-                        { Log.d("Main", "Rx - $it") },
-                        {
+            .subscribeOn(Schedulers.io()).subscribe(
+                { Log.d("Main", "Rx - $it") },
+                {
 
-                        })
+                })
         Thread.sleep(10000)
 
         d.dispose()
@@ -249,9 +236,9 @@ class MainActivity : AppCompatActivity() {
 
 
         val d1 = Completable.merge(listOf(c1, c2, c3, c4))
-                .subscribeOn(Schedulers.io()).subscribe {
-                    Log.d("Main", "Rx - merge complete")
-                }
+            .subscribeOn(Schedulers.io()).subscribe {
+                Log.d("Main", "Rx - merge complete")
+            }
         Thread.sleep(10000)
 
 
@@ -261,15 +248,15 @@ class MainActivity : AppCompatActivity() {
 
     fun concatExample(v: View) {
         val observable1 = Observable.intervalRange(1, 3, 0, 1, TimeUnit.SECONDS)
-                .doOnNext { Log.d("Main", "Rx - o1 emit $it") }
-                .doOnComplete { Log.d("Main", "Rx - o1 complete") }
+            .doOnNext { Log.d("Main", "Rx - o1 emit $it") }
+            .doOnComplete { Log.d("Main", "Rx - o1 complete") }
 
         val observable2 = Observable.intervalRange(1, 3, 3, 1, TimeUnit.SECONDS)
-                .doOnNext { Log.d("Main", "Rx - o2 emit $it") }
-                .doOnComplete { Log.d("Main", "Rx - o2 complete") }
+            .doOnNext { Log.d("Main", "Rx - o2 emit $it") }
+            .doOnComplete { Log.d("Main", "Rx - o2 complete") }
 
         val d = Observable.concat(
-                observable1, observable2
+            observable1, observable2
         ).subscribeOn(Schedulers.io()).subscribe { Log.d("Main", "Rx - $it") }
         Thread.sleep(10000)
 
@@ -279,22 +266,22 @@ class MainActivity : AppCompatActivity() {
 
     fun zipExample(v: View) {
         val observable1 = Observable.intervalRange(1, 5, 1, 1, TimeUnit.SECONDS)
-                .doOnNext { Log.d("Main", "Rx - o1 emit $it") }
-                .doOnComplete { Log.d("Main", "Rx - o1 complete") }
-                .doOnDispose { Log.d("Main", "Rx - o1 dispose") }
+            .doOnNext { Log.d("Main", "Rx - o1 emit $it") }
+            .doOnComplete { Log.d("Main", "Rx - o1 complete") }
+            .doOnDispose { Log.d("Main", "Rx - o1 dispose") }
 
         val observable2 = Observable.intervalRange(10, 8, 2, 2, TimeUnit.SECONDS)
-                .doOnNext { Log.d("Main", "Rx - o2 emit $it") }
-                .doOnComplete { Log.d("Main", "Rx - o2 complete") }
-                .doOnDispose { Log.d("Main", "Rx - o2 dispose") }
+            .doOnNext { Log.d("Main", "Rx - o2 emit $it") }
+            .doOnComplete { Log.d("Main", "Rx - o2 complete") }
+            .doOnDispose { Log.d("Main", "Rx - o2 dispose") }
 
         val d = Observable.zip(
-                observable1, observable2,
-                BiFunction<Long, Long, Long> { o1, o2 ->
+            observable1, observable2,
+            BiFunction<Long, Long, Long> { o1, o2 ->
 
-                    Log.d("Main", "Rx - o1 - $o1 and o2 - $o2")
-                    o1 + o2
-                }
+                Log.d("Main", "Rx - o1 - $o1 and o2 - $o2")
+                o1 + o2
+            }
         ).subscribeOn(Schedulers.io()).subscribe { Log.d("Main", "Rx - $it") }
         Thread.sleep(60000)
 
@@ -308,25 +295,26 @@ class MainActivity : AppCompatActivity() {
     fun groupByExample(v: View) {
 
         val dateList = listOf(
-                DateModel(18, "1"),
-                DateModel(19, "2"),
-                DateModel(19, "3"),
-                DateModel(18, "1"),
-                DateModel(19, "2"),
-                DateModel(19, "3")
+            DateModel(18, "1"),
+            DateModel(19, "2"),
+            DateModel(19, "3"),
+            DateModel(18, "1"),
+            DateModel(19, "2"),
+            DateModel(19, "3")
         )
         val d =
-                Observable.fromIterable(dateList)
-                        .doOnNext { Log.d("Main", "Rx - after fromIterable : $it") }
-                        .groupBy { it.date }.doOnNext {
-                            Log.d("Main", "Rx - after groupBy : ${it.key}")
-                        }
-                        .flatMapSingle {
-                            it.toList()
-                        }.doOnNext {
-                            Log.d("Main", "Rx - after flatMapSingle : $it")
-                        }
-                        .subscribeOn(Schedulers.io()).subscribe { Log.d("Main", "Rx - dateSize ${it.size}") }
+            Observable.fromIterable(dateList)
+                .doOnNext { Log.d("Main", "Rx - after fromIterable : $it") }
+                .groupBy { it.date }.doOnNext {
+                    Log.d("Main", "Rx - after groupBy : ${it.key}")
+                }
+                .flatMapSingle {
+                    it.toList()
+                }.doOnNext {
+                    Log.d("Main", "Rx - after flatMapSingle : $it")
+                }
+                .subscribeOn(Schedulers.io())
+                .subscribe { Log.d("Main", "Rx - dateSize ${it.size}") }
 
 
     }
@@ -341,24 +329,24 @@ class MainActivity : AppCompatActivity() {
         observable.subscribeOn(Schedulers.io()).subscribe(observer)
 
         observable.subscribeOn(Schedulers.io()).subscribe(
-                {
+            {
 
-                },
-                {
+            },
+            {
 
-                },
-                {
-                },
-                {
+            },
+            {
+            },
+            {
 
-                }
+            }
         )
 
 
         val observable1 = Observable.just(1, 2, 3)
         observable1.subscribeOn(Schedulers.io()).subscribeBy(
-                onNext = { Log.d("Main", "kotlin rx - $it") },
-                onComplete = { Log.d("Main", "kotlin rx - complete") }
+            onNext = { Log.d("Main", "kotlin rx - $it") },
+            onComplete = { Log.d("Main", "kotlin rx - complete") }
         )
 
     }
@@ -368,9 +356,9 @@ class MainActivity : AppCompatActivity() {
         val numbers = Observable.range(1, 6)
 
         val strings = Observable.just(
-                "One", "Two", "Three",
+            "One", "Two", "Three",
 
-                "Four", "Five", "Six"
+            "Four", "Five", "Six"
         )
 
         val zipped = Observable.zip(strings, numbers, BiFunction<String, Int, Int> { s, i ->
@@ -383,12 +371,14 @@ class MainActivity : AppCompatActivity() {
         val numbers = Observable.range(1, 6)
 
         val strings = Observable.just(
-                "One", "Two", "Three",
+            "One", "Two", "Three",
 
-                "Four", "Five", "Six"
+            "Four", "Five", "Six"
         )
 
-        val zipped = Observables.zip(strings, numbers) { s, n -> "$s $n" }.subscribeOn(Schedulers.io()).subscribe(::println)
+        val zipped =
+            Observables.zip(strings, numbers) { s, n -> "$s $n" }.subscribeOn(Schedulers.io())
+                .subscribe(::println)
     }
 
     fun getObserver(): Observer<Int> {
@@ -428,25 +418,25 @@ class MainActivity : AppCompatActivity() {
 
 
         val sub1 = Consumer<Long>(
-                {
-                    Log.d("Main", "t - sub1 - onNext ${it}")
-                }
+            {
+                Log.d("Main", "t - sub1 - onNext ${it}")
+            }
         )
 
         val sub2 = Consumer<Long>(
-                {
-                    Log.d("Main", "t - sub2 - onNext ${it}")
-                }
+            {
+                Log.d("Main", "t - sub2 - onNext ${it}")
+            }
         )
 
         val d1 = coldObservable
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.io())
-                .subscribe(sub1)
+            .subscribeOn(Schedulers.io())
+            .observeOn(Schedulers.io())
+            .subscribe(sub1)
         val d2 = coldObservable
-                .subscribeOn(Schedulers.io())
-                .observeOn(Schedulers.io())
-                .subscribe(sub2)
+            .subscribeOn(Schedulers.io())
+            .observeOn(Schedulers.io())
+            .subscribe(sub2)
         //not calling dispose
 
         Thread.sleep(5000)
@@ -462,9 +452,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         val sub1 = Consumer<Long>(
-                {
-                    Log.d("Main", "t - sub1 - onNext ${it}")
-                }
+            {
+                Log.d("Main", "t - sub1 - onNext ${it}")
+            }
         )
 
         val d1 = coldObservable.subscribeOn(Schedulers.io()).subscribe(sub1)
@@ -472,9 +462,9 @@ class MainActivity : AppCompatActivity() {
         Thread.sleep(5000)
 
         val sub2 = Consumer<Long>(
-                {
-                    Log.d("Main", "t - sub2 - onNext ${it}")
-                }
+            {
+                Log.d("Main", "t - sub2 - onNext ${it}")
+            }
         )
 
         val d2 = coldObservable.subscribeOn(Schedulers.io()).subscribe(sub2)
@@ -488,9 +478,9 @@ class MainActivity : AppCompatActivity() {
     fun replayingShare_observer(v: View) {
 
         val observable: Observable<Long> =
-                Observable.interval(100, TimeUnit.MILLISECONDS).doOnNext {
-                    Log.d("Main", "t - doOnNext ${it}")
-                }
+            Observable.interval(100, TimeUnit.MILLISECONDS).doOnNext {
+                Log.d("Main", "t - doOnNext ${it}")
+            }
 
 
         val con = observable.replayingShare()
@@ -552,9 +542,9 @@ class MainActivity : AppCompatActivity() {
     fun replayingShare(v: View) {
 
         val observable: Observable<Long> =
-                Observable.interval(100, TimeUnit.MILLISECONDS).doOnNext {
-                    Log.d("Main", "t - doOnNext ${it}")
-                }
+            Observable.interval(100, TimeUnit.MILLISECONDS).doOnNext {
+                Log.d("Main", "t - doOnNext ${it}")
+            }
 
 
         val con = observable.replayingShare()
@@ -562,9 +552,9 @@ class MainActivity : AppCompatActivity() {
         Thread.sleep(5000)
 
         val sub1 = Consumer<Long>(
-                {
-                    Log.d("Main", "t - sub1 - onNext ${it}")
-                }
+            {
+                Log.d("Main", "t - sub1 - onNext ${it}")
+            }
         )
 
         val d1 = con.subscribeOn(Schedulers.io()).subscribe(sub1)
@@ -575,9 +565,9 @@ class MainActivity : AppCompatActivity() {
         d1.dispose()
 
         val sub3 = Consumer<Long>(
-                {
-                    Log.d("Main", "t - sub3 - onNext ${it}")
-                })
+            {
+                Log.d("Main", "t - sub3 - onNext ${it}")
+            })
 
         Thread.sleep(2000)
         val d3 = con.subscribeOn(Schedulers.io()).subscribe(sub3)
@@ -599,15 +589,15 @@ class MainActivity : AppCompatActivity() {
 
 
         val sub1 = Consumer<Long>(
-                {
-                    Log.d("Main", "t - sub1 - onNext ${it}")
-                }
+            {
+                Log.d("Main", "t - sub1 - onNext ${it}")
+            }
         )
 
         val sub2 = Consumer<Long>(
-                {
-                    Log.d("Main", "t - sub2 - onNext ${it}")
-                }
+            {
+                Log.d("Main", "t - sub2 - onNext ${it}")
+            }
         )
         val d1 = con.subscribeOn(Schedulers.io()).subscribe(sub1)
         val d2 = con.subscribeOn(Schedulers.io()).subscribe(sub2)
@@ -623,9 +613,9 @@ class MainActivity : AppCompatActivity() {
         Thread.sleep(5000)
 
         val sub3 = Consumer<Long>(
-                {
-                    Log.d("Main", "t - sub3 - onNext ${it}")
-                })
+            {
+                Log.d("Main", "t - sub3 - onNext ${it}")
+            })
         val d3 = con.subscribeOn(Schedulers.io()).subscribe(sub3)
 
         Thread.sleep(5000)
@@ -639,9 +629,9 @@ class MainActivity : AppCompatActivity() {
         val random = Random
         val observable = Observable.create<Long> {
 
-            emitter ->
+                emitter ->
             Observable.interval(
-                    1000, TimeUnit.MILLISECONDS
+                1000, TimeUnit.MILLISECONDS
             ).subscribeOn(Schedulers.io()).subscribe {
                 Log.d("Main", "t - emitting ${it}")
                 emitter.onNext(random.nextLong())
@@ -656,15 +646,15 @@ class MainActivity : AppCompatActivity() {
 
 
         val sub1 = Consumer<Long>(
-                {
-                    Log.d("Main", "t - sub1 - onNext ${it}")
-                }
+            {
+                Log.d("Main", "t - sub1 - onNext ${it}")
+            }
         )
 
         val sub2 = Consumer<Long>(
-                {
-                    Log.d("Main", "t - sub2 - onNext ${it}")
-                }
+            {
+                Log.d("Main", "t - sub2 - onNext ${it}")
+            }
         )
         val d1 = con.subscribeOn(Schedulers.io()).subscribe(sub1)
         val d2 = con.subscribeOn(Schedulers.io()).subscribe(sub2)
@@ -686,9 +676,9 @@ class MainActivity : AppCompatActivity() {
         val random = Random
         val observable = Observable.create<Long> {
 
-            emitter ->
+                emitter ->
             Observable.interval(
-                    1000, TimeUnit.MILLISECONDS
+                1000, TimeUnit.MILLISECONDS
             ).subscribeOn(Schedulers.io()).subscribe {
                 Log.d("Main", "t - emitting ${it}")
                 emitter.onNext(random.nextLong())
@@ -700,15 +690,15 @@ class MainActivity : AppCompatActivity() {
 
 
         val sub1 = Consumer<Long>(
-                {
-                    Log.d("Main", "t - sub1 - onNext ${it}")
-                }
+            {
+                Log.d("Main", "t - sub1 - onNext ${it}")
+            }
         )
 
         val sub2 = Consumer<Long>(
-                {
-                    Log.d("Main", "t - sub2 - onNext ${it}")
-                }
+            {
+                Log.d("Main", "t - sub2 - onNext ${it}")
+            }
         )
         val d1 = con.subscribeOn(Schedulers.io()).subscribe(sub1)
 
@@ -731,27 +721,27 @@ class MainActivity : AppCompatActivity() {
 
 
         val s = observable
-                .doOnNext {
-                    Log.d("Main", "t - doOnNext ${it}")
-                }
-                .onErrorResumeNext { throwable: Throwable ->
+            .doOnNext {
+                Log.d("Main", "t - doOnNext ${it}")
+            }
+            .onErrorResumeNext { throwable: Throwable ->
 
-                    Log.d("Main", "t - onErrorResumeNext ${throwable}")
-                    when (throwable) {
-                        is NoSuchElementException -> Observable.just(200)
-                        else -> Observable.error(throwable)
-                    }
+                Log.d("Main", "t - onErrorResumeNext ${throwable}")
+                when (throwable) {
+                    is NoSuchElementException -> Observable.just(200)
+                    else -> Observable.error(throwable)
                 }
-                .observeOn(Schedulers.io())
-                .subscribeOn(Schedulers.io()).subscribe(
-                        {
-                            Log.d("Main", "t - onNext ${it}")
+            }
+            .observeOn(Schedulers.io())
+            .subscribeOn(Schedulers.io()).subscribe(
+                {
+                    Log.d("Main", "t - onNext ${it}")
 
-                        },
-                        { t ->
-                            Log.d("Main", "t - onError ${t.message}")
-                        }
-                )
+                },
+                { t ->
+                    Log.d("Main", "t - onError ${t.message}")
+                }
+            )
 
 
         for (i in 0..10) {
@@ -774,13 +764,13 @@ class MainActivity : AppCompatActivity() {
 //                .doOnError {Log.d("Main", "t - onError")  }
 //                .doOnDispose { Log.d("Main", "t - onDispose")  }
 //                .toFlowable(BackpressureStrategy.MISSING)
-                .toFlowable(BackpressureStrategy.BUFFER)
+            .toFlowable(BackpressureStrategy.BUFFER)
 //                .toFlowable(BackpressureStrategy.DROP)
 //                .toFlowable(BackpressureStrategy.LATEST)
 //                .toFlowable(BackpressureStrategy.ERROR)
 //                .subscribeOn(Schedulers.io())
 //                .observeOn(Schedulers.io())
-                .subscribeOn(Schedulers.io()).subscribe(getFlowableObserver())
+            .subscribeOn(Schedulers.io()).subscribe(getFlowableObserver())
 
 
         for (i in 0..300) {
@@ -825,25 +815,25 @@ class MainActivity : AppCompatActivity() {
         connectableObservable.connect()
 
         connectableObservable.subscribeOn(Schedulers.io()).subscribe(
-                {
-                    Log.d("Main", "observer 1 - $it")
-                }
+            {
+                Log.d("Main", "observer 1 - $it")
+            }
         )
 
         Thread.sleep(5000)
 
         connectableObservable.subscribeOn(Schedulers.io()).subscribe(
-                {
-                    Log.d("Main", "observer 2 - $it")
-                }
+            {
+                Log.d("Main", "observer 2 - $it")
+            }
         )
 
         Thread.sleep(5000)
 
         connectableObservable.subscribeOn(Schedulers.io()).subscribe(
-                {
-                    Log.d("Main", "observer 3 - $it")
-                }
+            {
+                Log.d("Main", "observer 3 - $it")
+            }
         )
 
         while (true) {
@@ -865,5 +855,21 @@ class MainActivity : AppCompatActivity() {
             R.id.action_settings -> true
             else -> super.onOptionsItemSelected(item)
         }
+    }
+
+    fun polling(view: View) {
+        startActivity(Intent(this, PollingActivity::class.java))
+    }
+
+    fun pollingImprovement(view: View) {
+        startActivity(Intent(this, PollingImprovementActivity::class.java))
+    }
+
+    fun observerPattern(view: View) {
+        startActivity(Intent(this, ObserverApproachActivity::class.java))
+    }
+
+    fun rxApproach(view: View) {
+        startActivity(Intent(this, RxApproachActivity::class.java))
     }
 }

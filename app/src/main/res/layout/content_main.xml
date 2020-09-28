@@ -15,6 +15,35 @@
         android:clipChildren="true"
         android:orientation="vertical">
 
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="polling"
+            android:text="Polling"
+            android:textColor="@android:color/black" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="pollingImprovement"
+            android:text="Polling Improvement"
+            android:textColor="@android:color/black" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="observerPattern"
+            android:text="Observer Pattern"
+            android:textColor="@android:color/black" />
+
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:onClick="rxApproach"
+            android:text="Rx Approach"
+            android:textColor="@android:color/black" />
+
 
         <Button
             android:layout_width="match_parent"
@@ -49,7 +78,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:onClick="doOn"
-            android:text="doOn"
+            android:text="do On"
             android:textColor="@android:color/black" />
 
         <Button
