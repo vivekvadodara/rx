@@ -876,4 +876,17 @@ class MainActivity : AppCompatActivity() {
     fun rxKotlinApproach(view: View) {
         startActivity(Intent(this, RxApproachKotlinActivity::class.java))
     }
+
+    fun pullImperativeApproach(view : View) {
+        startActivity(Intent(this, PullImperativeActivity::class.java))
+    }
+
+    fun observerPushImperativeApproach(view : View) {
+        startActivity(Intent(this, ObserverPushImperativeApproachActivity::class.java))
+    }
+
+
+    fun callbackPushImperativeApproach(view : View) {
+        startActivity(Intent(this, CallbackPushImperativeApproachActivity::class.java))
+    }
 }

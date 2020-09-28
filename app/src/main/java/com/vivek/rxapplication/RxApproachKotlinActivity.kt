@@ -72,7 +72,7 @@ class RxApproachKotlinActivity : AppCompatActivity() {
     }
 
     fun newsPublish(view: View?) {
-        RxApproachActivity.Tutorial("Tutorial Pause", "........").publish()
+        Tutorial("Tutorial Pause", "........").publish()
 
         Tutorial.REGISTER_FOR_SUBSCRIPTION.subscribe{
             Log.d("RxApproach", "published tutorial $it")

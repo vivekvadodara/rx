@@ -24,6 +24,10 @@
         <activity android:name=".ObserverApproachActivity"/>
         <activity android:name=".RxApproachActivity"/>
         <activity android:name=".RxApproachKotlinActivity"/>
+        <activity android:name=".PullImperativeActivity"/>
+        <activity android:name=".ObserverPushImperativeApproachActivity"/>
+        <activity android:name=".CallbackPushImperativeApproachActivity"/>
+
     </application>
 
 </manifest>

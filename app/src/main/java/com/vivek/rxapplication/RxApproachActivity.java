@@ -104,7 +104,6 @@ public class RxApproachActivity extends AppCompatActivity {
 
         @Override
         public void onComplete() {
-
         }
     }
 
