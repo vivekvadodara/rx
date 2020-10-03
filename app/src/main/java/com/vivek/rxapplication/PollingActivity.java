@@ -13,8 +13,9 @@ import java.util.TimerTask;
 public class PollingActivity extends AppCompatActivity {
 
     private static List<User> subscribedUsers = new ArrayList<>();
-
     private static List<Tutorial> publishedTutorials = new ArrayList<>();
+
+
     private static int lastCountOfPublishedTutorials = 0;
 
     private static Polling pollingObj = new Polling();
@@ -31,7 +32,12 @@ public class PollingActivity extends AppCompatActivity {
         publishedTutorials.add(android1);
         publishedTutorials.add(android2);
         publishedTutorials.add(android3);
+
+
+
         lastCountOfPublishedTutorials = publishedTutorials.size();
+        //lastCountOfPublishedTutorials = 3
+
 
         polling();
         // I have already three tutorials and later user subscribed for email

@@ -118,12 +118,14 @@ public class ObserverApproachActivity extends AppCompatActivity {
 
     public interface Observable {
 
-        void register(Observer observer);
+
+        public abstract void register(Observer observer);
 
         void unregister(Observer observer);
 
         // new tutorial published to tell all subscribed users
         void notifyAllAboutChange();
+
 
     }
 
@@ -132,4 +134,49 @@ public class ObserverApproachActivity extends AppCompatActivity {
         // New tutorial published
         void onNotify();
     }
+
+
+    /*
+    * public class Observable {
+    public Observable() {
+        throw new RuntimeException("Stub!");
+    }
+
+    public synchronized void addObserver(Observer o) {
+        throw new RuntimeException("Stub!");
+    }
+
+    public synchronized void deleteObserver(Observer o) {
+        throw new RuntimeException("Stub!");
+    }
+
+    public void notifyObservers() {
+        throw new RuntimeException("Stub!");
+    }
+
+    public void notifyObservers(Object arg) {
+        throw new RuntimeException("Stub!");
+    }
+
+    public synchronized void deleteObservers() {
+        throw new RuntimeException("Stub!");
+    }
+
+    protected synchronized void setChanged() {
+        throw new RuntimeException("Stub!");
+    }
+
+    protected synchronized void clearChanged() {
+        throw new RuntimeException("Stub!");
+    }
+
+    public synchronized boolean hasChanged() {
+        throw new RuntimeException("Stub!");
+    }
+
+    public synchronized int countObservers() {
+        throw new RuntimeException("Stub!");
+    }
+}
+    * */
 }

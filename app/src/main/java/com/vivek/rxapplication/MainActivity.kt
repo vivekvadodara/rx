@@ -13,6 +13,7 @@ import io.reactivex.*
 import io.reactivex.disposables.Disposable
 import io.reactivex.functions.BiFunction
 import io.reactivex.functions.Consumer
+import io.reactivex.observables.ConnectableObservable
 import io.reactivex.rxkotlin.Observables
 import io.reactivex.rxkotlin.subscribeBy
 import io.reactivex.schedulers.Schedulers
@@ -417,26 +418,25 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-        val sub1 = Consumer<Long>(
-            {
-                Log.d("Main", "t - sub1 - onNext ${it}")
-            }
-        )
+        val sub1 = Consumer<Long> {
+            Log.d("Main", "t - sub1 - onNext ${it}")
+        }
 
-        val sub2 = Consumer<Long>(
-            {
-                Log.d("Main", "t - sub2 - onNext ${it}")
-            }
-        )
+        val sub2 = Consumer<Long> {
+            Log.d("Main", "t - sub2 - onNext ${it}")
+        }
+
 
         val d1 = coldObservable
             .subscribeOn(Schedulers.io())
             .observeOn(Schedulers.io())
             .subscribe(sub1)
+
         val d2 = coldObservable
             .subscribeOn(Schedulers.io())
             .observeOn(Schedulers.io())
             .subscribe(sub2)
+
         //not calling dispose
 
         Thread.sleep(5000)
@@ -447,25 +447,22 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun coldObservables2(v: View) {
-        val coldObservable = Observable.interval(100, TimeUnit.MILLISECONDS).doOnNext {
+        val coldObservable = Observable.interval(1000, TimeUnit.MILLISECONDS).doOnNext {
             Log.d("Main", "t - doOnNext ${it}")
         }
 
-        val sub1 = Consumer<Long>(
-            {
-                Log.d("Main", "t - sub1 - onNext ${it}")
-            }
-        )
+        val sub1 = Consumer<Long> {
+            Log.d("Main", "t - sub1 - onNext ${it}")
+        }
+
 
         val d1 = coldObservable.subscribeOn(Schedulers.io()).subscribe(sub1)
 
         Thread.sleep(5000)
 
-        val sub2 = Consumer<Long>(
-            {
-                Log.d("Main", "t - sub2 - onNext ${it}")
-            }
-        )
+        val sub2 = Consumer<Long> {
+            Log.d("Main", "t - sub2 - onNext ${it}")
+        }
 
         val d2 = coldObservable.subscribeOn(Schedulers.io()).subscribe(sub2)
 
@@ -811,9 +808,25 @@ class MainActivity : AppCompatActivity() {
     fun hotObservables(v: View) {
 
         val observable = Observable.interval(1, TimeUnit.SECONDS)
-        val connectableObservable = observable.publish()
-        connectableObservable.connect()
+        observable.doOnSubscribe {
+            Log.d("Main", "original observable onSub - $it")
+        }.doOnNext {
+            Log.d("Main", "original observable onNext - $it")
+        }
+        //cold observable
+        val connectableObservable: ConnectableObservable<Long> = observable.publish()
+        connectableObservable.doOnSubscribe {
+            Log.d("Main", "connectableObservable onSub - $it")
+        }.doOnNext {
+            Log.d("Main", "connectableObservable onNext - $it")
+        }
 
+        // cold to hot conversion
+        Thread.sleep(5000)
+        connectableObservable.connect() // broadcasting started .. emision started
+
+
+        Thread.sleep(5000)
         connectableObservable.subscribeOn(Schedulers.io()).subscribe(
             {
                 Log.d("Main", "observer 1 - $it")
@@ -877,16 +890,16 @@ class MainActivity : AppCompatActivity() {
         startActivity(Intent(this, RxApproachKotlinActivity::class.java))
     }
 
-    fun pullImperativeApproach(view : View) {
+    fun pullImperativeApproach(view: View) {
         startActivity(Intent(this, PullImperativeActivity::class.java))
     }
 
-    fun observerPushImperativeApproach(view : View) {
+    fun observerPushImperativeApproach(view: View) {
         startActivity(Intent(this, ObserverPushImperativeApproachActivity::class.java))
     }
 
 
-    fun callbackPushImperativeApproach(view : View) {
+    fun callbackPushImperativeApproach(view: View) {
         startActivity(Intent(this, CallbackPushImperativeApproachActivity::class.java))
     }
 }

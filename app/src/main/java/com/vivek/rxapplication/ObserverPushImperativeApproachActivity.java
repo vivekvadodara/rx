@@ -2,6 +2,8 @@ package com.vivek.rxapplication;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -29,6 +31,19 @@ public class ObserverPushImperativeApproachActivity extends AppCompatActivity {
         data.add("E");
         currentDateTime();
         data.add("F");
+
+
+        Button button = new Button(this);
+
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                //TOdo
+            }
+        });
+
+        //button.setOnClickListener{view -> view.animation}
+
 
         data.unSubscribe(observer);
     }
@@ -81,6 +96,18 @@ public class ObserverPushImperativeApproachActivity extends AppCompatActivity {
             notifyToEveryOne();
         }
 
+        //reactive programming needs a continuous flow or a stream..but why?
+
+        // stream -> start point  <->> end point
+
+        //server API request
+
+        //DATA server response is the starting point of your stream/flow
+        //    |
+        //    |
+        //    |
+        //what will be end point? -> UI, Database
+
     }
 
     private static Observer observer = new Observer() {
@@ -100,5 +127,31 @@ public class ObserverPushImperativeApproachActivity extends AppCompatActivity {
 
     private static void currentDateTime() {
         Log.d("ObserverImperative", new Date(System.currentTimeMillis()).toString());
+        Log.d("TAG", giveMeBack(10)+"");
+        Log.d("TAG", giveMeBack(10L)+"");
+        Log.d("TAG", giveMeBack(10.1f)+"");
+
+        String s = giveMeBackTypeInterface(10.1f);
+
+        Log.d("TAG", (String) giveMeBackTypeInterface(10.1f));
+//        Log.d("TAG", giveMeBackTypeInterface("skjh"));
+//        Log.d("TAG", giveMeBackTypeInterface(new PollingActivity.User()));
+    }
+
+
+    public static int  giveMeBack(int a){
+        return a;
+    }
+
+    public static long  giveMeBack(long a){
+        return a;
+    }
+
+    public static Float  giveMeBack(Float a){
+        return a;
+    }
+
+    public static<I, R> R  giveMeBackTypeInterface(I a){
+        return (R) a;
     }
 }
