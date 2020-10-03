@@ -6,9 +6,17 @@ import android.util.Log
 import android.view.View
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
+import com.jakewharton.rxrelay2.BehaviorRelay
 import io.reactivex.Observable
+import io.reactivex.ObservableSource
 import io.reactivex.Observer
 import io.reactivex.disposables.Disposable
+import io.reactivex.functions.BiFunction
+import io.reactivex.functions.Function3
+import io.reactivex.subjects.BehaviorSubject
+import io.reactivex.subjects.PublishSubject
+import io.reactivex.subjects.ReplaySubject
+import java.lang.IllegalStateException
 
 class RxApproachKotlinActivity : AppCompatActivity() {
 
@@ -79,7 +87,15 @@ class RxApproachKotlinActivity : AppCompatActivity() {
 
     fun newsPublish(view: View?) {
 
-        coldObservableExample()
+        //coldObservableExample()
+
+//        publishSubjectExample()
+
+//        replaySubjectExample()
+
+//        behaviourSubjectExample()
+
+        behaviorRelay()
 
         //four type of Observable data types
         //Observable
@@ -415,6 +431,292 @@ class RxApproachKotlinActivity : AppCompatActivity() {
         }*/
 
     }
+
+    private fun behaviorRelay() {
+        val source1 = Observable.create<Int> {
+            it.onNext(1)
+            it.onNext(2)
+            Thread.sleep(3000)
+            it.onNext(3)
+            it.onNext(4)
+            Thread.sleep(10000)
+            it.onNext(5)
+        }
+
+        val source2 = Observable.create<Int> {
+            it.onComplete()
+            it.onNext(100)
+            Thread.sleep(2000)
+            it.onNext(200)
+            Thread.sleep(5000)
+            it.onNext(300)
+        }
+
+
+        Observable.just(10,20).switchMap {
+            Observable.just(it*30).switchMap {
+                Observable.just(it+30)
+            }
+        }
+
+
+        Observable.zip(source1, source2,
+        BiFunction<Int, Int, String> { t1, t2 ->
+            ""
+        }
+        ).map {  }
+
+
+
+
+
+
+
+
+        //hot & cold observables
+        // cold to hot conversion -> .publish & .connect
+
+        //subject
+        // 4 types Publish, Beha, replay & async subject
+
+        // Relay -> Subject but without onError & onComplete // .accept()
+
+        // combineLatest , Zip, BiFunction, Function3
+
+
+        //flatMap ...
+        //switchMap
+        //concatMap
+
+        val d = Observable.combineLatest(
+            source1, // mobile internet working or not ---> BOOLEAN --- false....true....false.....true....
+            BehaviorRelay.createDefault(100), // user,password // valid or not //BOOLEAN
+            source2, //....T&C accepted or not // BOOLEAN
+            Function3<Int, Int, Int, String> { s1, s2, s3 ->
+
+                //s1 internetAvailablity = true
+                //s2 user credentials Valid
+                // T&C -TRUE
+
+
+
+                // server login request
+                ""
+            }
+
+        ).subscribe(
+            {
+                Log.d("TAG", "on Next $it")
+            },
+            {
+                Log.d("TAG", "on Error $it")
+            },
+            {
+                Log.d("TAG", "on Complete")
+            }
+        )
+
+    }
+
+
+
+    private fun replaySubjectExample() {
+
+        val replaySubject = ReplaySubject.create<Double>()
+
+        val s = replaySubject.doOnNext {
+            Log.d("TAG", "replay subject - DOonNext $it")
+        }
+
+        //observer
+        val disposable1 = replaySubject.subscribe(
+            {
+                Log.d("TAG", "sub1 - onNext $it")
+            },
+            {
+
+            },
+            {
+                Log.d("TAG", "sub1 - onComplete")
+            }
+        )
+
+        replaySubject.onNext(Math.random())
+        Thread.sleep(5000)
+        replaySubject.onNext(Math.random())
+        Thread.sleep(5000)
+        replaySubject.onNext(Math.random())
+
+        Thread.sleep(5000)
+
+        val disposable2 = replaySubject.subscribe (
+            {
+                Log.d("TAG", "sub2 - onNext $it")
+            },
+            {
+
+            },
+            {
+                Log.d("TAG", "sub2 - onComplete")
+            }
+        )
+
+        //observable
+        replaySubject.onNext(Math.random())
+        Thread.sleep(2000)
+        replaySubject.onNext(Math.random())
+        Thread.sleep(2000)
+
+        disposable1.dispose()
+
+        replaySubject.onNext(Math.random())
+        replaySubject.onNext(Math.random())
+        replaySubject.onNext(Math.random())
+        replaySubject.onNext(Math.random())
+        replaySubject.onNext(Math.random())
+
+        disposable2.dispose()
+        replaySubject.onNext(Math.random())
+        replaySubject.onNext(Math.random())
+        replaySubject.onNext(Math.random())
+        replaySubject.onNext(Math.random())
+        replaySubject.onComplete()
+//        subject.onError(IllegalStateException())
+    }
+
+
+
+    private fun behaviourSubjectExample() {
+
+        val behaviorSubject = BehaviorSubject.create<Double>()
+
+        val s = behaviorSubject.doOnNext {
+            Log.d("TAG", "behavior subject - DOonNext $it")
+        }
+
+        //observer
+        val disposable1 = behaviorSubject.subscribe(
+            {
+                Log.d("TAG", "sub1 - onNext $it")
+            },
+            {
+
+            },
+            {
+                Log.d("TAG", "sub1 - onComplete")
+            }
+        )
+
+        behaviorSubject.onNext(Math.random())
+        Thread.sleep(5000)
+        behaviorSubject.onNext(Math.random())
+        Thread.sleep(5000)
+        behaviorSubject.onNext(Math.random())
+
+        Thread.sleep(5000)
+
+        val disposable2 = behaviorSubject.subscribe (
+            {
+                Log.d("TAG", "sub2 - onNext $it")
+            },
+            {
+
+            },
+            {
+                Log.d("TAG", "sub2 - onComplete")
+            }
+        )
+
+        //observable
+        behaviorSubject.onNext(Math.random())
+        Thread.sleep(2000)
+        behaviorSubject.onNext(Math.random())
+        Thread.sleep(2000)
+
+        disposable1.dispose()
+
+        behaviorSubject.onNext(Math.random())
+        behaviorSubject.onNext(Math.random())
+        behaviorSubject.onNext(Math.random())
+        behaviorSubject.onNext(Math.random())
+        behaviorSubject.onNext(Math.random())
+
+        behaviorSubject.onError(IllegalStateException())
+
+        disposable2.dispose()
+        behaviorSubject.onNext(Math.random())
+        behaviorSubject.onNext(Math.random())
+        behaviorSubject.onNext(Math.random())
+        behaviorSubject.onNext(200.0)
+
+
+        behaviorSubject.onComplete()
+
+        //observ1 - 1....4....6.............100.....102
+        //ob2 -     30 40 50
+        //ob3 -     a b, ERROR/COMPLETE
+
+        //ob --- onNext......onNext 1.4....5.
+
+
+
+
+//        subject.onError(IllegalStateException())
+    }
+
+
+    private fun publishSubjectExample() {
+
+        val publishSubject = PublishSubject.create<Double>()
+
+        val replaySubject = ReplaySubject.create<Double>()
+
+
+        //observer
+        publishSubject.subscribe(
+            {
+                Log.d("TAG", "sub1 - onNext $it")
+            },
+            {
+
+            },
+            {
+                Log.d("TAG", "sub1 - onComplete")
+            }
+        )
+
+        publishSubject.onNext(Math.random())
+        publishSubject.onNext(Math.random())
+        publishSubject.onNext(Math.random())
+
+        publishSubject.subscribe (
+            {
+                Log.d("TAG", "sub2 - onNext $it")
+            },
+            {
+
+            },
+            {
+                Log.d("TAG", "sub2 - onComplete")
+            }
+        )
+
+        //observable
+        publishSubject.onNext(Math.random())
+        publishSubject.onNext(Math.random())
+        publishSubject.onNext(Math.random())
+        publishSubject.onNext(Math.random())
+        publishSubject.onNext(Math.random())
+        publishSubject.onNext(Math.random())
+        publishSubject.onNext(Math.random())
+        publishSubject.onNext(Math.random())
+        publishSubject.onNext(Math.random())
+        publishSubject.onNext(Math.random())
+        publishSubject.onNext(Math.random())
+        publishSubject.onComplete()
+//        subject.onError(IllegalStateException())
+    }
+
 
     private fun coldObservableExample() {
 
