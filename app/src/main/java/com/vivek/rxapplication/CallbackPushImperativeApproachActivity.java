@@ -30,6 +30,11 @@ public class CallbackPushImperativeApproachActivity extends AppCompatActivity {
         data.add("F");
     }
 
+    private void accpetIntergers(Integer...items) {
+
+        int length = items.length;
+    }
+
     private static class Data {
 
         private interface Callback {

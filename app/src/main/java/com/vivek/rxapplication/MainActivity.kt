@@ -20,6 +20,7 @@ import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 import org.reactivestreams.Subscriber
 import org.reactivestreams.Subscription
+import java.lang.IllegalStateException
 import java.util.concurrent.TimeUnit
 import kotlin.random.Random
 
@@ -63,6 +64,37 @@ class MainActivity : AppCompatActivity() {
 
                 Observable.just("$item - $delay")
                     .delay(delay, TimeUnit.SECONDS, Schedulers.computation())
+            }
+            .toList()
+            .doOnSuccess { Log.d("Main", "Rx - $it") }
+            .subscribeOn(Schedulers.io()).subscribe()
+
+    }
+
+
+    fun getUserDetails() : Observable<String> {
+
+        return Observable.just("sushant", "vivek").flatMap { userItem ->
+            Observable.just("$userItem - 1000")
+                .delay(1000, TimeUnit.SECONDS, Schedulers.computation())
+        }
+    }
+
+    fun flatMapExampleDeleteIt(v: View)  {
+        val d = Observable.just("sushant", "vivek", "yaqub", "vivek", "eeeeUser", "ffffUser")
+
+            .concatMapEager { userItem: String ->
+
+                if(userItem =="vivek") {
+                    // make server http://xyz.com  request -- getUserDetail(userItem)
+                    Observable.just("$userItem - 1000")
+                        .delay(1000, TimeUnit.SECONDS, Schedulers.computation())
+                } else {
+                    // assume it is server request on http://abc.com/ -- getUserDetails(userItem)
+                    Observable.just("$userItem - 10")
+                        .delay(10, TimeUnit.SECONDS, Schedulers.computation())
+                }
+
             }
             .toList()
             .doOnSuccess { Log.d("Main", "Rx - $it") }
@@ -205,10 +237,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun mergeExample(v: View) {
-        val observable1 = Observable.interval(2, 3, TimeUnit.SECONDS)
-            .doOnNext { Log.d("Main", "Rx - o1 emit $it") }
-        val observable2 = Observable.interval(2, 4, TimeUnit.SECONDS)
-            .doOnNext { Log.d("Main", "Rx - o2 emit $it") }
+        val observable1 = getSource1().doOnComplete { Log.d("Main", "o1 Completed")  }
+        val observable2 = Observable.interval(0, 1, TimeUnit.SECONDS)
+            .doOnNext { Log.d("Main", "o2 emit $it") }
 
         val d = Observable.merge(
             observable1, observable2
@@ -219,9 +250,18 @@ class MainActivity : AppCompatActivity() {
                 {
 
                 })
-        Thread.sleep(10000)
+        Thread.sleep(100000)
 
         d.dispose()
+    }
+
+    private fun getSource1(): Observable<Long> {
+        return Observable.create {
+         it.onNext(10)
+            Thread.sleep(5000)
+            it.onNext(20)
+            it.onError(IllegalStateException())
+        }
     }
 
     fun mergeCompletableExample(v: View) {
@@ -761,9 +801,9 @@ class MainActivity : AppCompatActivity() {
 //                .doOnError {Log.d("Main", "t - onError")  }
 //                .doOnDispose { Log.d("Main", "t - onDispose")  }
 //                .toFlowable(BackpressureStrategy.MISSING)
-            .toFlowable(BackpressureStrategy.BUFFER)
-//                .toFlowable(BackpressureStrategy.DROP)
-//                .toFlowable(BackpressureStrategy.LATEST)
+//            .toFlowable(BackpressureStrategy.BUFFER) //0,1.cont..300  .800..850  900 950 960...1000  => total 400
+                .toFlowable(BackpressureStrategy.DROP)
+//                .toFlowable(BackpressureStrategy.LATEST) //0 to 599 will be ignored &  600 to 1000 will be consumed & processed
 //                .toFlowable(BackpressureStrategy.ERROR)
 //                .subscribeOn(Schedulers.io())
 //                .observeOn(Schedulers.io())

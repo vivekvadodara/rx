@@ -7,18 +7,25 @@ import android.view.View
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import com.jakewharton.rxrelay2.BehaviorRelay
+import io.reactivex.Completable
 import io.reactivex.Observable
 import io.reactivex.ObservableSource
 import io.reactivex.Observer
+import io.reactivex.disposables.CompositeDisposable
 import io.reactivex.disposables.Disposable
 import io.reactivex.functions.BiFunction
+import io.reactivex.functions.BooleanSupplier
 import io.reactivex.functions.Function3
+import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.BehaviorSubject
 import io.reactivex.subjects.PublishSubject
 import io.reactivex.subjects.ReplaySubject
-import java.lang.IllegalStateException
+import java.io.IOException
+import java.util.concurrent.TimeUnit
 
 class RxApproachKotlinActivity : AppCompatActivity() {
+
+    val compositeDisposable = CompositeDisposable()
 
     public override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -95,7 +102,14 @@ class RxApproachKotlinActivity : AppCompatActivity() {
 
 //        behaviourSubjectExample()
 
-        behaviorRelay()
+//        behaviorRelay()
+
+//        switchMapExample()
+
+//        disposableClearDispose()
+
+//        doOnError()
+        onResumeNext()
 
         //four type of Observable data types
         //Observable
@@ -432,6 +446,175 @@ class RxApproachKotlinActivity : AppCompatActivity() {
 
     }
 
+    private fun doOnError() {
+
+        Observable.error<Exception>(IOException())
+            .doOnSubscribe { }
+            .doOnError { Log.e("TAG", "on error called in observable - $it") }
+            .subscribe(
+                {
+
+                },
+                {
+                    Log.e("TAG", "on error called in consumer - $it")
+                }
+            )
+    }
+
+    private fun onErrorComplete() {
+
+        Completable.fromAction {
+            throw IOException()
+        }.onErrorComplete {
+            it !is IOException
+        }
+            .subscribe(
+                {
+                    Log.e("TAG", "on complete called in consumer")
+                },
+                {
+                    Log.e("TAG", "on error called  in consumer-  $it")
+                }
+            )
+
+
+    }
+
+    private fun onResumeNext() {
+
+        val boolFunction : () -> Boolean = { true }
+        val booleanSupplier = BooleanSupplier(boolFunction)
+        Observable.just(1, 2, 3, 4, 5)
+            .map { it / (3 - it) }
+            .retryWhen {
+                shoudlWeRetry()
+            }//<Int, Int , String>
+            .onErrorResumeNext { //TODO fix it
+                getFallbackObservableSource()
+            }
+//            .onExceptionResumeNext(
+//                getFallbackObservableSource()
+//            )
+//            .onErrorReturn {
+//                 if (it is IOException){
+//                    0
+//                } else  {
+//                    throw it
+//                }
+//            }
+//            .onErrorReturnItem(0)
+//            .retryUntil(booleanSupplier)
+            .subscribe(
+                {
+                    Log.d("TAG", "consumer on next $it")
+                },
+                {
+                    Log.e("TAG", "consumer on error $it")
+                },
+                {
+                    Log.e("TAG", "consumer on complete")
+                }
+            )
+
+
+    }
+
+    private fun fallbackObservable(): Any {
+        TODO("Not yet implemented")
+    }
+
+    private fun getFallbackObservableSource(): ObservableSource<out Int>? {
+        TODO("Not yet implemented")
+    }
+
+    private fun shoudlWeRetry(): ObservableSource<Boolean>? {
+        TODO("Not yet implemented")
+    }
+
+    private fun disposableClearDispose() {
+
+        compositeDisposable.addAll(Observable.interval(1, TimeUnit.SECONDS).subscribe {
+            Log.d("TAG", "FIRST  $it")
+        },
+            Observable.interval(1, TimeUnit.SECONDS).subscribe {
+                Log.d("TAG", "FIRST  $it")
+            }
+        )
+        Log.d("TAG", "initially disposable size : ${compositeDisposable.size()}")
+        Thread.sleep(3000)
+        compositeDisposable.clear()
+        //try to comment one of them & see the output
+//        compositeDisposable.dispose()
+
+        Log.d("TAG", "is disposed : ${compositeDisposable.isDisposed}")
+        Log.d("TAG", "disposable size : ${compositeDisposable.size()}")
+
+
+        compositeDisposable.addAll(Observable.interval(1, TimeUnit.SECONDS).subscribe {
+            Log.d("TAG", "THIRD  $it")
+        },
+            Observable.interval(1, TimeUnit.SECONDS).subscribe {
+                Log.d("TAG", "FOUR  $it")
+            }
+
+        )
+        //viewmodel -> .dispose() -> on which method -> onCleared()
+        //viewModel -> .addAll() -> on whcih method -> init() which will be called by Fragment/View.onCreate()
+
+        Thread.sleep(3000)
+        compositeDisposable.dispose()
+
+        Log.d("TAG", "2nd attempt - is disposed : ${compositeDisposable.isDisposed}")
+        Log.d("TAG", "2nd attempt - disposable size : ${compositeDisposable.size()}")
+
+    }
+
+    private fun switchMapExample() {
+
+        Log.d("TAG", "switchMap started")
+        val d = getUserNameObservable().doOnNext { Log.d("TAG", "received new user Name $it") }
+            .switchMap { userName ->
+                getUserDetailsObservable(userName).doOnNext {
+                    Log.d(
+                        "TAG",
+                        "received new userDetails for $userName"
+                    )
+                }
+            }.subscribe {
+                Log.d("TAG", "on next of switch - $it")
+            }
+    }
+
+    private fun getUserNameObservable(): Observable<String> {
+
+        return Observable.create {
+
+            it.onNext("sushant")
+
+            Thread.sleep(1000 * 3)
+            it.onNext("yaqub")
+
+
+            Thread.sleep(1000 * 10)
+            it.onNext("vivek")
+
+            Thread.sleep(1000 * 10)
+            it.onNext("final_item")
+        }
+    }
+
+    private fun getUserDetailsObservable(userItem: String): Observable<String> {
+        return if (userItem == "vivek") {
+            // make server http://xyz.com  request -- getUserDetail(userItem)
+            Observable.just("$userItem - 10")
+                .delay(10, TimeUnit.SECONDS, Schedulers.computation())
+        } else {
+            // assume it is server request on http://abc.com/ -- getUserDetails(userItem)
+            Observable.just("$userItem - 2")
+                .delay(2, TimeUnit.SECONDS, Schedulers.computation())
+        }
+    }
+
     private fun behaviorRelay() {
         val source1 = Observable.create<Int> {
             it.onNext(1)
@@ -453,24 +636,18 @@ class RxApproachKotlinActivity : AppCompatActivity() {
         }
 
 
-        Observable.just(10,20).switchMap {
-            Observable.just(it*30).switchMap {
-                Observable.just(it+30)
+        Observable.just(10, 20).switchMap {
+            Observable.just(it * 30).switchMap {
+                Observable.just(it + 30)
             }
         }
 
 
         Observable.zip(source1, source2,
-        BiFunction<Int, Int, String> { t1, t2 ->
-            ""
-        }
-        ).map {  }
-
-
-
-
-
-
+            BiFunction<Int, Int, String> { t1, t2 ->
+                ""
+            }
+        ).map { }
 
 
         //hot & cold observables
@@ -499,7 +676,6 @@ class RxApproachKotlinActivity : AppCompatActivity() {
                 // T&C -TRUE
 
 
-
                 // server login request
                 ""
             }
@@ -517,7 +693,6 @@ class RxApproachKotlinActivity : AppCompatActivity() {
         )
 
     }
-
 
 
     private fun replaySubjectExample() {
@@ -549,7 +724,7 @@ class RxApproachKotlinActivity : AppCompatActivity() {
 
         Thread.sleep(5000)
 
-        val disposable2 = replaySubject.subscribe (
+        val disposable2 = replaySubject.subscribe(
             {
                 Log.d("TAG", "sub2 - onNext $it")
             },
@@ -585,7 +760,6 @@ class RxApproachKotlinActivity : AppCompatActivity() {
     }
 
 
-
     private fun behaviourSubjectExample() {
 
         val behaviorSubject = BehaviorSubject.create<Double>()
@@ -615,7 +789,7 @@ class RxApproachKotlinActivity : AppCompatActivity() {
 
         Thread.sleep(5000)
 
-        val disposable2 = behaviorSubject.subscribe (
+        val disposable2 = behaviorSubject.subscribe(
             {
                 Log.d("TAG", "sub2 - onNext $it")
             },
@@ -659,8 +833,6 @@ class RxApproachKotlinActivity : AppCompatActivity() {
         //ob --- onNext......onNext 1.4....5.
 
 
-
-
 //        subject.onError(IllegalStateException())
     }
 
@@ -689,7 +861,7 @@ class RxApproachKotlinActivity : AppCompatActivity() {
         publishSubject.onNext(Math.random())
         publishSubject.onNext(Math.random())
 
-        publishSubject.subscribe (
+        publishSubject.subscribe(
             {
                 Log.d("TAG", "sub2 - onNext $it")
             },
